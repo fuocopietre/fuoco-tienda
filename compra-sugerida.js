@@ -114,6 +114,10 @@
     '.fs-bar.fs-listo p b{color:#2e8b57}' +
     '.fs-bar.fs-listo .fs-fill{background:#2e8b57}' +
     '.fs-papel{position:fixed;z-index:2147483000;pointer-events:none;border-radius:1px}' +
+    '#fs-ficha.fs-ancho{margin:48px 0 0}' +
+    '.fs-ancho .fs-list{grid-template-columns:repeat(3,1fr);gap:16px}' +
+    '.fs-ancho .fs-card{grid-template-columns:96px 1fr;padding:10px}' +
+    '.fs-ancho .fs-card img{width:96px;height:96px}' +
     '.fs-cart{display:block!important;list-style:none;padding:6px 0 4px}' +
     '.fs-cart .fs-box{margin:6px 0}' +
     '.fs-cart .fs-card{grid-template-columns:56px 1fr}' +
@@ -298,10 +302,23 @@
       var sub = textoCupon(1);
       caja.innerHTML = '\x3cp class="fs-tit">Combiná con\x3c/p>' + (sub ? '\x3cp class="fs-sub">' + sub + '\x3c/p>' : '\x3cp class="fs-sub">Piezas que van bien con esta.\x3c/p>') +
         '\x3cdiv class="fs-list">' + lista.map(function (c) { return tarjeta(c, 'ficha'); }).join('') + '\x3c/div>';
-      var ancla = form.parentElement && form.parentElement.classList.contains('uk-first-column') ? form.parentElement : form;
-      ancla.parentNode.insertBefore(caja, ancla.nextSibling);
       activarBotones(caja, mapa);
+      ubicarFicha(caja, form, 0);
     });
+  }
+
+  /* En PC va a lo ancho, debajo de las dos columnas de ventanas; en el celu, debajo del botón. */
+  function ubicarFicha(caja, form, n) {
+    var pc = window.matchMedia && window.matchMedia('(min-width: 960px)').matches;
+    var ancho = document.querySelector('.fuoco-acc-ancho');
+    if (pc && !ancho && 10 > n) { setTimeout(function () { ubicarFicha(caja, form, n + 1); }, 200); return; }
+    if (pc && ancho) {
+      caja.classList.add('fs-ancho');
+      ancho.parentNode.insertBefore(caja, ancho.nextSibling);
+      return;
+    }
+    var ancla = form.parentElement && form.parentElement.classList.contains('uk-first-column') ? form.parentElement : form;
+    ancla.parentNode.insertBefore(caja, ancla.nextSibling);
   }
 
   /* ------------------------------ CARRITO ------------------------------ */
