@@ -110,7 +110,10 @@
     '.fs-bar p{font-size:13px;margin:0 0 6px}' +
     '.fs-bar p b{color:#c2502e}' +
     '.fs-track{height:6px;border-radius:3px;background:rgba(26,22,20,.12);overflow:hidden}' +
-    '.fs-fill{height:100%;background:#c2502e;transition:width .4s}' +
+    '.fs-fill{height:100%;background:#c2502e;transition:width .4s,background .4s}' +
+    '.fs-bar.fs-listo p b{color:#2e8b57}' +
+    '.fs-bar.fs-listo .fs-fill{background:#2e8b57}' +
+    '.fs-papel{position:fixed;z-index:2147483000;pointer-events:none;border-radius:1px}' +
     '.fs-cart{display:block!important;list-style:none;padding:6px 0 4px}' +
     '.fs-cart .fs-box{margin:6px 0}' +
     '.fs-cart .fs-card{grid-template-columns:56px 1fr}' +
@@ -199,7 +202,9 @@
       if (fi >= 0) { puntos = 100 - fi; motivo = 'Elegida para vos'; }
       else if (mismaPiedra && !tiposBase[p.tipo]) { puntos = 50; motivo = 'Misma piedra, otro formato'; }
       else if (mismaFamilia && !mismaPiedra) { puntos = 30 + (tiposBase[p.tipo] ? 2 : 0); motivo = 'Combina en color'; }
-      if (puntos) lista.push({ p: p, puntos: puntos, motivo: motivo });
+      /* Relleno: si una piedra tiene pocas combinaciones, se completa con otras piezas. */
+      else { puntos = tiposBase[p.tipo] ? 5 : 10; motivo = 'También te puede gustar'; }
+      lista.push({ p: p, puntos: puntos, motivo: motivo });
     });
     lista.sort(function (a, b) { return b.puntos - a.puntos; });
     return lista;
@@ -325,7 +330,7 @@
     var total = subtotal - desc;
     var falta = AJUSTES.envioGratisDesde - total;
     var pct = Math.max(4, Math.min(100, total / AJUSTES.envioGratisDesde * 100));
-    var barra = '\x3cdiv class="fs-bar">\x3cp>' + (falta > 0
+    var barra = '\x3cdiv class="fs-bar' + (falta > 0 ? '' : ' fs-listo') + '">\x3cp>' + (falta > 0
       ? 'Te faltan \x3cb>' + plata(falta) + '\x3c/b> para el \x3cb>envío gratis\x3c/b>.'
       : '¡Listo! Tu pedido tiene \x3cb>envío gratis\x3c/b>.') +
       '\x3c/p>\x3cdiv class="fs-track">\x3cdiv class="fs-fill" style="width:' + pct + '%">\x3c/div>\x3c/div>\x3c/div>';
@@ -333,6 +338,11 @@
 
     var detalle = [].filter.call(ul.children, function (x) { return /Subtotal/.test(x.textContent); })[0];
     if (detalle) ul.insertBefore(li, detalle.nextSibling); else ul.appendChild(li);
+
+    /* Festejo una sola vez cada vez que se cruza el monto del envío gratis. */
+    var yaFesteje = leer('fs-festejo') === '1';
+    if (falta > 0) { if (yaFesteje) guardar('fs-festejo', '0'); }
+    else if (!yaFesteje) setTimeout(function () { if (festejar(li.querySelector('.fs-bar'))) guardar('fs-festejo', '1'); }, 350);
 
     catalogo().then(function (todos) {
       var base = [], excluir = {};
@@ -359,6 +369,33 @@
         '\x3cdiv class="fs-list">' + lista.map(function (c) { return tarjeta(c, 'carrito'); }).join('') + '\x3c/div>';
       activarBotones(caja, mapa);
     });
+  }
+
+  function leer(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function guardar(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+
+  /* Papelitos de colores que saltan desde la barra (sin sonido). */
+  function festejar(barra) {
+    if (!barra || !barra.animate) return false;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+    var r = barra.getBoundingClientRect();
+    if (!r.width) return false;
+    var colores = ['#c2502e', '#2e8b57', '#f2b134', '#3b7dd8', '#e85d9e', '#8e5bd8', '#ffffff'];
+    for (var i = 0; 46 > i; i++) {
+      var d = document.createElement('i');
+      d.className = 'fs-papel';
+      var w = 5 + Math.random() * 5;
+      d.style.cssText = 'left:' + (r.left + Math.random() * r.width) + 'px;top:' + r.top + 'px;width:' + w + 'px;height:' + (w * (Math.random() > .5 ? 1.8 : 1)) + 'px;background:' + colores[i % colores.length];
+      document.body.appendChild(d);
+      var dx = (Math.random() - .5) * 220, alto = 90 + Math.random() * 130, gira = (Math.random() - .5) * 1080;
+      var a = d.animate([
+        { transform: 'translate(0,0) rotate(0)', opacity: 1 },
+        { transform: 'translate(' + dx * .6 + 'px,' + (-alto) + 'px) rotate(' + gira / 2 + 'deg)', opacity: 1, offset: .35 },
+        { transform: 'translate(' + dx + 'px,' + (alto * .9) + 'px) rotate(' + gira + 'deg)', opacity: 0 }
+      ], { duration: 1400 + Math.random() * 700, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'forwards' });
+      a.onfinish = (function (el) { return function () { el.remove(); }; })(d);
+    }
+    return true;
   }
 
   function aplicarCupon() {
