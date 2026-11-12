@@ -10,6 +10,7 @@
    5. Las tarjetas de producto muestran el descuento por transferencia
       una sola vez (Empretienda lo repetía en dos renglones).
    6. Menos aire entre los bloques imagen + texto del inicio en PC.
+   7. Banner del inicio en el celu más alto, para que el texto se lea.
    ===================================================================== */
 (function () {
   var DOMINIO_VIEJO = /^https?:\/\/fuocopietre\.empretienda\.com\.ar/i;
@@ -19,6 +20,8 @@
   document.head.insertAdjacentHTML('beforeend', '\x3cstyle>' +
     '.products-feed__product-additional{display:none!important}' +
     /* Inicio en PC: los bloques imagen + texto dejaban 140 px vacíos entre sí. */
+    /* Banner del inicio en el celu: más alto y recortado desde la izquierda, donde está el texto. */
+    '@media (max-width:639px){.block-carrousel__image{width:100%;height:62vw;object-fit:cover;object-position:0 50%}}' +
     '@media (min-width:960px){.block-composed-images-text{padding-top:30px!important;padding-bottom:30px!important}}' +
     '.header-announcement__text{transition:opacity .35s}' +
     '.header-announcement__text.fu-out{opacity:0}' +
