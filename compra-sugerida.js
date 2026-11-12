@@ -342,7 +342,7 @@
     /* Festejo una sola vez cada vez que se cruza el monto del envío gratis. */
     var yaFesteje = leer('fs-festejo') === '1';
     if (falta > 0) { if (yaFesteje) guardar('fs-festejo', '0'); }
-    else if (!yaFesteje) setTimeout(function () { if (festejar(li.querySelector('.fs-bar'))) guardar('fs-festejo', '1'); }, 350);
+    else if (!yaFesteje) intentarFestejo(0);
 
     catalogo().then(function (todos) {
       var base = [], excluir = {};
@@ -374,12 +374,24 @@
   function leer(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
   function guardar(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
 
+  /* El carrito se vuelve a dibujar y se abre con animación: se espera a que la barra se vea. */
+  var timerFestejo = null;
+  function intentarFestejo(n) {
+    clearTimeout(timerFestejo);
+    timerFestejo = setTimeout(function () {
+      if (leer('fs-festejo') === '1') return;
+      var b = document.querySelector('.fs-cart .fs-bar.fs-listo');
+      if (b && festejar(b)) guardar('fs-festejo', '1');
+      else if (12 > n) intentarFestejo(n + 1);
+    }, 400);
+  }
+
   /* Papelitos de colores que saltan desde la barra (sin sonido). */
   function festejar(barra) {
     if (!barra || !barra.animate) return false;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
     var r = barra.getBoundingClientRect();
-    if (!r.width) return false;
+    if (!r.width || 0 > r.top || r.top > window.innerHeight) return false;
     var colores = ['#c2502e', '#2e8b57', '#f2b134', '#3b7dd8', '#e85d9e', '#8e5bd8', '#ffffff'];
     for (var i = 0; 46 > i; i++) {
       var d = document.createElement('i');
