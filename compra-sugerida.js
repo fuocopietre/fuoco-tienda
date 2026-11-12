@@ -319,8 +319,12 @@
 
     var li = document.createElement('li');
     li.className = 'cart-sidenav__item fs-cart';
-    var falta = AJUSTES.envioGratisDesde - subtotal;
-    var pct = Math.max(4, Math.min(100, subtotal / AJUSTES.envioGratisDesde * 100));
+    /* Empretienda mira el total CON el descuento del cupón para el envío gratis. */
+    var desc = (data.cupon && data.cupon.id) ? (Number(data.cupon.monto_descuento) || 0)
+      : (AJUSTES.cupon && piezas >= 2 ? AJUSTES.cuponMonto : 0);
+    var total = subtotal - desc;
+    var falta = AJUSTES.envioGratisDesde - total;
+    var pct = Math.max(4, Math.min(100, total / AJUSTES.envioGratisDesde * 100));
     var barra = '\x3cdiv class="fs-bar">\x3cp>' + (falta > 0
       ? 'Te faltan \x3cb>' + plata(falta) + '\x3c/b> para el \x3cb>envío gratis\x3c/b>.'
       : '¡Listo! Tu pedido tiene \x3cb>envío gratis\x3c/b>.') +
@@ -346,7 +350,9 @@
       var mapa = {}; lista.forEach(function (c) { mapa[c.p.slug] = c; });
       var sub = textoCupon(piezas);
       if (!sub && falta > 0) {
-        var alcanza = lista.some(function (c) { return c.f.variantes[0].precio >= falta; });
+        /* Al sumar una pieza puede entrar el cupón, que también baja el total. */
+        var descExtra = AJUSTES.cupon ? Math.max(0, AJUSTES.cuponMonto - desc) : 0;
+        var alcanza = lista.some(function (c) { return c.f.variantes[0].precio - descExtra >= falta; });
         sub = alcanza ? 'Sumando una de estas, \x3cb>el envío te sale gratis\x3c/b>.' : '';
       }
       caja.innerHTML = '\x3cp class="fs-tit">Sumale una más\x3c/p>' + (sub ? '\x3cp class="fs-sub">' + sub + '\x3c/p>' : '') +
