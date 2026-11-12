@@ -300,7 +300,7 @@
   }
 
   /* ------------------------------ CARRITO ------------------------------ */
-  var ultimoCarrito = null, cuponIntentado = false;
+  var ultimoCarrito = null, intentosCupon = 0;
 
   function dibujarCarrito(data) {
     ultimoCarrito = data;
@@ -315,7 +315,7 @@
     items.forEach(function (it) { subtotal += it.precio_unitario * it.cantidad; piezas += it.cantidad; ids[String(it.id)] = 1; });
 
     /* Cupón automático: con 2 piezas o más, si no hay otro cupón puesto. */
-    if (AJUSTES.cupon && piezas >= 2 && data.cupon && !data.cupon.id && !cuponIntentado) aplicarCupon();
+    if (AJUSTES.cupon && piezas >= 2 && data.cupon && !data.cupon.id && 2 > intentosCupon) aplicarCupon();
 
     var li = document.createElement('li');
     li.className = 'cart-sidenav__item fs-cart';
@@ -356,12 +356,15 @@
   }
 
   function aplicarCupon() {
-    cuponIntentado = true;
-    var input = document.getElementById('add_coupon-coupon');
-    var form = document.getElementById('add_coupon-form');
-    if (!input || !form) return;
-    input.value = AJUSTES.cupon;
-    if (form.requestSubmit) form.requestSubmit(); else window.jQuery(form).trigger('submit');
+    intentosCupon++;
+    /* Se espera un momento: Empretienda vuelve a dibujar el carrito y borraría el campo. */
+    setTimeout(function () {
+      var input = document.getElementById('add_coupon-coupon');
+      var btn = document.getElementById('add_coupon-btn');
+      if (!input || !btn) return;
+      input.value = AJUSTES.cupon;
+      btn.click();
+    }, 400);
   }
 
   /* Engancha el armado del carrito de Empretienda. */
