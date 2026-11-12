@@ -12,7 +12,7 @@
   /* ============================ AJUSTES ============================ */
   var AJUSTES = {
     envioGratisDesde: 80000,   // monto para el envío gratis
-    cupon: '',                 // código del cupón de 2 piezas. Vacío = apagado. Ej: 'FUOCO2'
+    cupon: 'MASDE2PRODUCTOS',  // código del cupón de 2 piezas. Vacío = apagado.
     cuponMonto: 3000,          // lo que descuenta el cupón (solo para el texto)
     sugerenciasFicha: 3,       // cuántas piezas mostrar en la ficha
     sugerenciasCarrito: 2      // cuántas mostrar en el carrito
